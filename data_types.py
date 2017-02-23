@@ -12,6 +12,7 @@ class Endpoint:
         self.data_center_latency=data_center_latency
 
 
+
 class Link:
     def __init__(self, latency, endpoint, cache_server):
         self.latency = latency
