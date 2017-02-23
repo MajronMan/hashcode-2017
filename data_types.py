@@ -9,8 +9,7 @@ class Endpoint:
         self.links = links
         self.id = id
         self.requests = requests
-        self.data_center_latency=data_center_latency
-
+        self.data_center_latency = data_center_latency
 
 
 class Link:
@@ -33,17 +32,24 @@ class Request:
         self.number = number
 
         def available_links():
-            result=[]
+            result = []
             for link in endpoint.links:
                 if video in link.cache_server.videos:
                     result.append(link)
             return result
 
+
 class Chromosome:
     def __init__(self, cache_servers):
-        self.cache_servers=cache_servers
-    def to_file(self,filename):
-            f=open(filename,'w')
-            f.truncate()
+        self.cache_servers = cache_servers
 
-
+    def to_file(self, filename):
+        f = open(filename, 'w')
+        f.truncate()
+        f.write(str(len(self.cache_servers)) + '\n')
+        for i in range(0, len(self.cache_servers)):
+            server = self.cache_servers[i]
+            f.write(str(i) + " ")
+            for video in server.videos:
+                f.write(str(video.id) + " ")
+        f.write('\n')
