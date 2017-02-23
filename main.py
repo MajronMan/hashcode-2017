@@ -5,11 +5,11 @@ Cellar Dwellers @ HashCode 2017
 from random import randint, random
 from cost import *
 
-retain_rate = 0.8
-diversity_rate = 0.8
+retain_rate = 1
+diversity_rate = 1
 mutation_rate = 0.001
 epochs_number = 1e20
-population_size = 10000
+population_size = 10
 cache_servers_number = 0
 
 videos = []
@@ -230,7 +230,7 @@ def log(i, population):
 def perform_epochs():
     global videos, cache_servers, endpoints, population, cache_servers_number
 
-    p  = Parser.read_from_file('wopo.in')
+    p  = Parser.read_from_file('trending_today.in')
     videos = p['videos']
     cache_servers = p['cache_servers']
     endpoints = p['endpoints']
