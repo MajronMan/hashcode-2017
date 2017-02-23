@@ -16,7 +16,6 @@ videos = []
 cache_servers = []
 
 best_chromosome = None
-population = []
 
 
 def evolve(population):
@@ -83,6 +82,13 @@ def get_random_gene(server_id, size):
         else:
             break
     return server
+
+
+def get_first_population():
+    population = []
+    for i in range(population_size):
+        population.append(get_random_chromosome())
+    return population
 
 
 if __name__ == "__main__":
