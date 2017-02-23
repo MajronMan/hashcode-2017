@@ -189,7 +189,7 @@ def get_random_gene(server_id, size):
     server = CacheServer(server_id, [], size)
     loaded_size = 0
     while True:
-        video = videos[randint(len(videos))]
+        video = videos[randint(0, len(videos) - 1)]
         if loaded_size + video.size <= server.size:
             server.videos.append(video)
             loaded_size += video.size
