@@ -3,7 +3,7 @@ Cellar Dwellers @ HashCode 2017
 """
 
 from random import randint, random
-from data_types import *
+from cost import *
 
 retain_rate = 0
 diversity_rate = 0
@@ -30,7 +30,7 @@ def evolve(population):
     # diversity
     tmp = population_size - len(parents)
     for i in range(0, tmp):
-        parents.append(get_random_gene())
+        parents.append(get_random_chromosome())
 
     # breeding
     children_number = population_size - len(parents)
@@ -85,19 +85,5 @@ def get_random_gene(server_id, size):
     return server
 
 
-def perform_epochs():
-    pass
-
-
-# temp
-def rate_chromosome(chromosome):
-    pass
-
-
-# temp
-def rate_population(population):
-    pass
-
-
 if __name__ == "__main__":
-    perform_epochs()
+    pass
