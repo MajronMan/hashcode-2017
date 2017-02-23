@@ -39,3 +39,11 @@ class Request:
                     result.append(link)
             return result
 
+class Chromosome:
+    def __init__(self, cache_servers):
+        self.cache_servers=cache_servers
+    def to_file(self,filename):
+            f=open(filename,'w')
+            f.truncate()
+
+
