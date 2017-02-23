@@ -3,6 +3,12 @@ class Video:
         self.size = size
         self.id = id
 
+    def __str__(self):
+        return "id: " + str(self.id) + " size: " + str(self.size)
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class Endpoint:
     def __init__(self, links, id, requests, data_center_latency):
@@ -11,6 +17,14 @@ class Endpoint:
         self.requests = requests
         self.data_center_latency = data_center_latency
 
+    def __str__(self):
+        return "\nid:" + str(self.id) + "\n" + \
+               "\n".join(map(str, [str(link) for link in self.links])) + "\n" + \
+               "\n".join(map(str, [str(link) for link in self.requests]))
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class Link:
     def __init__(self, latency, endpoint, cache_server):
@@ -18,11 +32,24 @@ class Link:
         self.endpoint = endpoint
         self.cache_server = cache_server
 
+    def __str__(self):
+        return str(self.cache_server.id) + " --" + str(self.latency) + "-->" + str(self.endpoint.id)
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class CacheServer:
-    def __init__(self, id, videos):
+    def __init__(self, id, videos, size):
         self.id = id
         self.videos = videos
+        self.size = size
+
+    def __str__(self):
+        return "id: " + str(self.id) + " size: " + str(self.size)
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class Request:
@@ -37,6 +64,12 @@ class Request:
                 if video in link.cache_server.videos:
                     result.append(link)
             return result
+
+    def __str__(self):
+        return "video " + str(self.video.id) + "--> " + str(self.endpoint.id) + " x" + str(self.number)
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class Chromosome:
