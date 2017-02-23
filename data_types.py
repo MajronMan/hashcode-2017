@@ -30,3 +30,11 @@ class Request:
         self.video = video
         self.endpoint = endpoint
         self.number = number
+
+        def available_links():
+            result=[]
+            for link in endpoint.links:
+                if video in link.cache_server.videos:
+                    result.append(link)
+            return result
+
