@@ -27,13 +27,13 @@ class Endpoint:
 
 
 class Link:
-    def __init__(self, latency, endpoint, cache_server):
+    def __init__(self, latency, endpoint_id, cache_server_id):
         self.latency = latency
-        self.endpoint = endpoint
-        self.cache_server = cache_server
+        self.endpoint_id = endpoint_id
+        self.cache_server_id = cache_server_id
 
     def __str__(self):
-        return str(self.cache_server.id) + " --" + str(self.latency) + "-->" + str(self.endpoint.id)
+        return str(self.cache_server_id) + " --" + str(self.latency) + "-->" + str(self.endpoint_id)
 
     def __repr__(self):
         return self.__str__()
@@ -58,12 +58,12 @@ class Request:
         self.endpoint = endpoint
         self.number = number
 
-        def available_links():
-            result = []
-            for link in endpoint.links:
-                if video in link.cache_server.videos:
-                    result.append(link)
-            return result
+    def available_links(self, cache_servers):
+        result = []
+        for link in self.endpoint.links:
+            if self.video in cache_servers[link.cache_server_id].videos:
+                result.append(link)
+        return result
 
     def __str__(self):
         return "video " + str(self.video.id) + "--> " + str(self.endpoint.id) + " x" + str(self.number)
