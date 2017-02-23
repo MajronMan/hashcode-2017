@@ -5,11 +5,11 @@ Cellar Dwellers @ HashCode 2017
 from random import randint, random
 from cost import *
 
-retain_rate = 0
+retain_rate = 0.8
 diversity_rate = 0.8
 mutation_rate = 0.001
-epochs_number = 0
-population_size = 10
+epochs_number = 1e20
+population_size = 10000
 cache_servers_number = 0
 
 videos = []
@@ -110,7 +110,7 @@ class Chromosome:
             f.write(str(i) + " ")
             for video in server.videos:
                 f.write(str(video.id) + " ")
-        f.write('\n')
+            f.write('\n')
 
     def __str__(self):
         return "\n".join(list(map(str, self.cache_servers)))
@@ -255,7 +255,7 @@ def rate_chromosome(chromosome):
             for link in request.available_links(chromosome.cache_servers):
                 if link.latency < best_latency:
                     best_latency = link.latency
-            nom += request.number * best_latency
+            nom += request.number * (endpoint.data_center_latency-best_latency)
             denom += request.number
     return nom / denom
 
