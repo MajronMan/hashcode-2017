@@ -3,12 +3,13 @@ Cellar Dwellers @ HashCode 2017
 """
 
 from random import randint, random
+from cost import *
 
 retain_rate = 0
-diversity_rate = 0
-mutation_rate = 0
+diversity_rate = 0.8
+mutation_rate = 0.001
 epochs_number = 0
-population_size = 0
+population_size = 10
 cache_servers_number = 0
 
 videos = []
@@ -50,13 +51,13 @@ class Endpoint:
 
 
 class Link:
-    def __init__(self, latency, endpoint, cache_server):
+    def __init__(self, latency, endpoint_id, cache_server_id):
         self.latency = latency
-        self.endpoint = endpoint
-        self.cache_server = cache_server
+        self.endpoint_id = endpoint_id
+        self.cache_server_id = cache_server_id
 
     def __str__(self):
-        return str(self.cache_server.id) + " --" + str(self.latency) + "-->" + str(self.endpoint.id)
+        return str(self.cache_server_id) + " --" + str(self.latency) + "-->" + str(self.endpoint_id)
 
     def __repr__(self):
         return self.__str__()
@@ -69,7 +70,8 @@ class CacheServer:
         self.size = size
 
     def __str__(self):
-        return "id: " + str(self.id) + " size: " + str(self.size)
+        return "\nid: " + str(self.id) + " size: " + str(self.size) + '\n' + \
+               "\n".join(list(map(str, self.videos)))
 
     def __repr__(self):
         return self.__str__()
@@ -81,12 +83,12 @@ class Request:
         self.endpoint = endpoint
         self.number = number
 
-        def available_links():
-            result = []
-            for link in endpoint.links:
-                if video in link.cache_server.videos:
-                    result.append(link)
-            return result
+    def available_links(self, cache_servers):
+        result = []
+        for link in self.endpoint.links:
+            if self.video in cache_servers[link.cache_server_id].videos:
+                result.append(link)
+        return result
 
     def __str__(self):
         return "video " + str(self.video.id) + "--> " + str(self.endpoint.id) + " x" + str(self.number)
@@ -110,32 +112,46 @@ class Chromosome:
                 f.write(str(video.id) + " ")
         f.write('\n')
 
+    def __str__(self):
+        return "\n".join(list(map(str, self.cache_servers)))
 
-def read():
-    v, e, r, c, x = list(map(int, input().split()))
-    video_sizes = list(map(int, input().split()))  # v numbers describing video sizes
-    videos = [Video(video_sizes[i], i) for i in range(v)]
-    cache_servers = [CacheServer(i, [], x) for i in range(c)]
-    datacenter = CacheServer(-1, [], -1)
-    endpoints = []
-    for i in range(e):
-        endpoints.append(Endpoint([], i, []))
-        ld, k = list(map(int, input().split()))  # latency to datacenter and number of cache servers
-        # id of datacenter is -1
-        endpoints[i].links.append(Link(ld, endpoints[i], datacenter))
-        for j in range(k):
-            c, lc = list(map(int, input().split()))  # id and latency to cache server
-            endpoints[i].links.append(Link(lc, endpoints[i], cache_servers[c]))
-    for i in range(r):
-        rv, re, rn = list(map(int, input().split()))
-        endpoints[re].requests.append(Request(videos[rv], endpoints[re], rn))
-    return {'videos': videos, 'cache_servers': cache_servers, 'endpoints': endpoints}
+    def __repr__(self):
+        return self.__str__()
+
+
+class Parser:
+    @staticmethod
+    def read():
+        return Parser._read(input)
+
+    @staticmethod
+    def _read(inputMethod):
+        v, e, r, c, x = list(map(int, inputMethod().split()))
+        video_sizes = list(map(int, inputMethod().split()))  # v numbers describing video sizes
+        videos = [Video(video_sizes[i], i) for i in range(v)]
+        cache_servers = [CacheServer(i, {}, x) for i in range(c)]
+        endpoints = []
+        for i in range(e):
+            ld, k = list(map(int, inputMethod().split()))  # latency to datacenter and number of cache servers
+            endpoints.append(Endpoint([], i, [], ld))
+            for j in range(k):
+                c, lc = list(map(int, inputMethod().split()))  # id and latency to cache server
+                endpoints[i].links.append(Link(lc, i, c))
+        for i in range(r):
+            rv, re, rn = list(map(int, inputMethod().split()))
+            endpoints[re].requests.append(Request(videos[rv], endpoints[re], rn))
+        return {'videos': videos, 'cache_servers': cache_servers, 'endpoints': endpoints}
+
+    @staticmethod
+    def read_from_file(filename):
+        f = open(filename, 'r')
+        return Parser._read(f.readline)
 
 
 def evolve(population):
     global best_chromosome
     graded = sorted([c for c in population], key=lambda x: rate_chromosome(x),
-                    reversed=True)
+                    reverse=True)
     best_chromosome = graded[0]
     retain_length = int(len(graded) * retain_rate)
     parents = graded[:retain_length]
@@ -202,7 +218,7 @@ def get_initial_population():
     initial_population = []
 
     for i in range(population_size):
-        population.append(get_random_chromosome())
+        initial_population.append(get_random_chromosome())
 
     return initial_population
 
@@ -212,29 +228,31 @@ def log(i, population):
 
 
 def perform_epochs():
-    global videos, cache_servers, endpoints, population
+    global videos, cache_servers, endpoints, population, cache_servers_number
 
-    videos, cache_servers, endpoints, = read()
+    p  = Parser.read_from_file('wopo.in')
+    videos = p['videos']
+    cache_servers = p['cache_servers']
+    endpoints = p['endpoints']
+    cache_servers_number = len(cache_servers)
     population = get_initial_population()
 
     # log(i, population)
-    for i in range(start=0, stop=None):
+    for i in range(0, 1000):
         population = evolve(population)
-        best_chromosome.to_file("best.out")
+        best_chromosome.to_file(str(rate_chromosome(best_chromosome)) + "best.out")
 
         # if i % log_interval == 0:
         #     log(population)
 
 
-def rate_chromosome():
-    global endpoints
-
+def rate_chromosome(chromosome):
     nom = 0
     denom = 0
     for endpoint in endpoints:
         for request in endpoint.requests:
             best_latency = endpoint.data_center_latency
-            for link in request.available_links():
+            for link in request.available_links(chromosome.cache_servers):
                 if link.latency < best_latency:
                     best_latency = link.latency
             nom += request.number * best_latency
@@ -247,4 +265,4 @@ def rate_population(population):
 
 
 if __name__ == "__main__":
-    pass
+    perform_epochs()
