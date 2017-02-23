@@ -46,7 +46,8 @@ class CacheServer:
         self.size = size
 
     def __str__(self):
-        return "id: " + str(self.id) + " size: " + str(self.size)
+        return "\nid: " + str(self.id) + " size: " + str(self.size) + '\n' + \
+               "\n".join(list(map(str, self.videos)))
 
     def __repr__(self):
         return self.__str__()
@@ -86,3 +87,9 @@ class Chromosome:
             for video in server.videos:
                 f.write(str(video.id) + " ")
         f.write('\n')
+
+    def __str__(self):
+        return "\n".join(list(map(str, self.cache_servers)))
+
+    def __repr__(self):
+        return self.__str__()

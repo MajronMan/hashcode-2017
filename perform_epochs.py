@@ -1,7 +1,15 @@
+from parser import Parser
+
+
+def log(i, population):
+    print("--------------------\nEpoch "+ i, "\n".join(list(map(str, population))))
+
+log_interval = 1
+
 def perform_epochs():
     global videos, cache_servers, endpoints, population
 
-    videos, cache_servers, endpoints, = read()
+    videos, cache_servers, endpoints, = Parser.read()
     population = get_initial_population()
 
     # log(i, population)
