@@ -3,11 +3,14 @@ class Video:
         self.size = size
         self.id = id
 
+
 class Endpoint:
-    def __init__(self, links, id, requests):
+    def __init__(self, links, id, requests, data_center_latency):
         self.links = links
         self.id = id
         self.requests = requests
+        self.data_center_latency=data_center_latency
+
 
 class Link:
     def __init__(self, latency, endpoint, cache_server):
@@ -15,10 +18,12 @@ class Link:
         self.endpoint = endpoint
         self.cache_server = cache_server
 
+
 class CacheServer:
     def __init__(self, id, videos):
-        self. id = id
+        self.id = id
         self.videos = videos
+
 
 class Request:
     def __init__(self, video, endpoint, number):
