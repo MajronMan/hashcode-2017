@@ -2,6 +2,7 @@
 Cellar Dwellers @ HashCode 2017
 """
 
+
 class Video:
     def __init__(self, size, id):
         self.size = size
@@ -46,7 +47,7 @@ class Link:
 class CacheServer:
     def __init__(self, id, videos, size):
         self.id = id
-        self.videos = videos
+        self.videos = set(videos)
         self.size = size
 
     def __str__(self):
@@ -82,16 +83,15 @@ class Chromosome:
         self.cache_servers = cache_servers
 
     def to_file(self, filename):
-        f = open(filename, 'w')
-        f.truncate()
-        f.write(str(len(self.cache_servers)) + '\n')
-        for i in range(0, len(self.cache_servers)):
-            server = self.cache_servers[i]
-            f.write(str(i) + " ")
-            for video in server.videos:
-                f.write(str(video.id) + " ")
-            f.write('\n')
-        f.close()
+        with open(filename, 'w') as f:
+            f.truncate()
+            f.write(str(len(self.cache_servers)) + '\n')
+            for i in range(0, len(self.cache_servers)):
+                server = self.cache_servers[i]
+                f.write(str(i) + " ")
+                for video in server.videos:
+                    f.write(str(video.id) + " ")
+                f.write('\n')
 
     def __str__(self):
         return "\n".join(list(map(str, self.cache_servers)))

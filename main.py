@@ -90,7 +90,7 @@ def get_random_gene(server_id, size):
     while True:
         video = videos[randint(0, len(videos) - 1)]
         if loaded_size + video.size <= server.size and video not in server.videos:
-            server.videos.append(video)
+            server.videos.add(video)
             loaded_size += video.size
         else:
             break
