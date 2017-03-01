@@ -2,15 +2,22 @@
 Cellar Dwellers @ HashCode 2017
 """
 
-from random import randint, random
+import math
+from random import randint, random, choice
+
 from data_types import *
 
-retain_rate = 0.5
+retain_rate = 0.9
 diversity_rate = 0.2
-mutation_rate = 0.4
+crossover_rate = 1.0
+mutation_rate = 0.1
 epochs_number = int(1e5)
-population_size = 50
+population_size = 500
 epoch_step = 500
+
+saturation_mutation_rate_delta = 0.02
+saturation_retain_rate_delta = -0.05
+saturation_max_epochs = 1000
 
 videos = []
 cache_servers = []
@@ -20,23 +27,43 @@ population = []
 best_chromosome = None
 best_chromosome_score = 0.0
 
+current_mutation_rate = mutation_rate
+current_retain_rate = retain_rate
+saturation_epochs_count = 0
+
 epoch_nr = 0
 
 
 def evolve(epoch_population):
-    global best_chromosome, epoch_nr, best_chromosome_score
+    global best_chromosome, epoch_nr, best_chromosome_score, saturation_max_epochs, saturation_epochs_count, \
+        mutation_rate, current_mutation_rate
+
     epoch_nr += 1
+
     graded = [(c, rate_chromosome(c)) if c.score == 0 else (c, c.score) for c in epoch_population]
     graded = [x[0] for x in sorted(graded, key=lambda x: x[1], reverse=True)]
+
     best_chromosome = graded[0]
     score = rate_chromosome(best_chromosome)
+
+    # saturation
+    if math.isclose(score, best_chromosome_score):
+        saturation_epochs_count += 1
+
+        if saturation_epochs_count == saturation_max_epochs:
+            desaturate()
+            saturation_epochs_count = 0
+    else:
+        saturation_epochs_count = 0
+
     if score > best_chromosome_score:
         best_chromosome_score = score
-        print("Progress: Best score in epoch {} is {}".format(epoch_nr, score))
+        log_epoch(epoch_nr, score)
         best_chromosome.to_file("./results/" + str(score) + "best.out")
+
     elif epoch_nr % epoch_step == 0:
-        print("Epoch {}, best score {}".format(epoch_nr, score))
-    retain_length = int(len(graded) * retain_rate)
+        log_epoch(epoch_nr, score)
+    retain_length = int(len(graded) * current_retain_rate)
     parents = graded[:retain_length]
 
     # diversity
@@ -48,10 +75,10 @@ def evolve(epoch_population):
     children_number = population_size - len(parents)
     children = []
     while len(children) < children_number:
-        parent1 = parents[randint(0, len(parents) - 1)]
-        parent2 = parents[randint(0, len(parents) - 1)]
-        if parent1 != parent2:
-            child1, child2 = get_children(parent1, parent2)
+        mother = roulette_choice(parents, parents[0].score)
+        father = roulette_choice(parents, parents[0].score)
+        if mother != father:
+            child1, child2 = get_children(mother, father)
             children.append(child1)
             children.append(child2)
 
@@ -59,8 +86,35 @@ def evolve(epoch_population):
     return parents
 
 
+def log_epoch(epoch_nr, score):
+    print("Epoch\t{:6d}\t\tscore\t{:.6f}".format(epoch_nr, score))
+
+
+def desaturate():
+    global current_mutation_rate, current_retain_rate
+
+    current_mutation_rate += saturation_mutation_rate_delta
+    current_retain_rate += saturation_retain_rate_delta
+
+    print("Saturation: epoch {}\tmutation: {:.4f}\tretain: {:.4f}".format(epoch_nr, current_mutation_rate,
+                                                                          current_retain_rate))
+
+
+def roulette_choice(population, max_score):
+    candidate = None
+    accepted = False
+
+    while not accepted:
+        candidate = choice(population)
+        if random() < candidate.score / max_score:
+            accepted = True
+
+    return candidate
+
+
 def get_children(parent1, parent2):
-    split_point = randint(0, len(cache_servers))
+    split_point = randint(0, len(cache_servers)) if random() < crossover_rate else len(cache_servers)
+
     child1 = Chromosome(parent1.cache_servers[:split_point] + parent2.cache_servers[split_point:])
     child2 = Chromosome(parent1.cache_servers[split_point:] + parent2.cache_servers[:split_point])
     mutate(child1)
@@ -70,7 +124,7 @@ def get_children(parent1, parent2):
 
 def mutate(chromosome):
     for i in range(len(chromosome.cache_servers)):
-        if random() < mutation_rate:
+        if random() < current_mutation_rate:
             server = chromosome.cache_servers[i]
             chromosome.cache_servers[i] = get_random_gene(server.id, server.size)
 
