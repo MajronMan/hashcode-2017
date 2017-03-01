@@ -81,6 +81,7 @@ class Request:
 class Chromosome:
     def __init__(self, cache_servers):
         self.cache_servers = cache_servers
+        self.score = 0.0
 
     def to_file(self, filename):
         with open(filename, 'w') as f:

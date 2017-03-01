@@ -7,9 +7,9 @@ from data_types import *
 
 retain_rate = 0.5
 diversity_rate = 0.2
-mutation_rate = 0.25
+mutation_rate = 0.4
 epochs_number = int(1e5)
-population_size = 8
+population_size = 50
 epoch_step = 500
 
 videos = []
@@ -26,8 +26,8 @@ epoch_nr = 0
 def evolve(epoch_population):
     global best_chromosome, epoch_nr, best_chromosome_score
     epoch_nr += 1
-    graded = sorted([c for c in epoch_population], key=lambda x: rate_chromosome(x),
-                    reverse=True)
+    graded = [(c, rate_chromosome(c)) if c.score == 0 else (c, c.score) for c in epoch_population]
+    graded = [x[0] for x in sorted(graded, key=lambda x: x[1], reverse=True)]
     best_chromosome = graded[0]
     score = rate_chromosome(best_chromosome)
     if score > best_chromosome_score:
@@ -117,7 +117,8 @@ def rate_chromosome(chromosome):
                     best_latency = link.latency
             nom += request.number * (endpoint.data_center_latency - best_latency)
             denom += request.number
-    return nom / denom
+    chromosome.score = nom / denom
+    return chromosome.score
 
 
 def perform_epochs():
